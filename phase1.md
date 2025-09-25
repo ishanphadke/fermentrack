@@ -1,4 +1,4 @@
-# Fermentrack: Phase 1
+# Fermentrack: Phase 1 Development Guide
 
 This document outlines the concrete steps for Phase 1: Foundation & Core Features, as detailed in the project proposal. Each step includes links to relevant documentation and examples to guide development.
 
@@ -23,7 +23,7 @@ This document outlines the concrete steps for Phase 1: Foundation & Core Feature
         -   **Authentication:** In the Firebase console, go to Authentication -> Sign-in method and enable **Email/Password** and **Google**.
             -   **Docs:** Enable Sign-in Methods
         -   **Cloud Firestore:** Go to Firestore Database -> Create database. Start in **Test Mode** for initial development.
-            -   **Docs:** Get started with Cloud Firestore
+            -   **Note:** Test mode allows open access. We will replace this with secure, rule-based access before production.
         -   **Cloud Storage:** Go to Storage -> Get started. Follow the prompts to set up the default bucket.
             -   **Docs:** Get started with Cloud Storage
         -   **Cloud Messaging (FCM):** No initial setup needed in the console for basic client-side handling, but you can find your server key under Project Settings -> Cloud Messaging if needed later.
@@ -38,14 +38,26 @@ This document outlines the concrete steps for Phase 1: Foundation & Core Feature
         -   Run `flutter pub add firebase_core firebase_auth cloud_firestore firebase_storage firebase_messaging`.
         -   **Docs:** These will be added to your `pubspec.yaml` by `flutterfire configure`, but you can add them manually if needed.
     -   **3.2. Add State Management:**
-        -   Run `flutter pub add flutter_riverpod riverpod_annotation`.
-        -   **Docs:** Riverpod Official Documentation
+        -   Run `flutter pub add flutter_riverpod riverpod_annotation`. For code generation, add dev dependencies: `flutter pub add -d build_runner riverpod_generator`.
+        -   **Note:** We will use Riverpod's code generation to reduce boilerplate and ensure type safety, as per `CLAUDE.md`.
+        -   **Docs:** Riverpod Code Generation
     -   **3.3. Add Navigation:**
         -   Run `flutter pub add go_router`.
         -   **Docs:** GoRouter Package and Declarative routing with GoRouter
     -   **3.4. Add Utility Packages:**
-        -   Run `flutter pub add intl`.
-        -   **Docs:** Intl Package
+        -   Run `flutter pub add intl` for date/time formatting.
+        -   Run `flutter pub add freezed_annotation` and `flutter pub add -d freezed json_serializable` for immutable models.
+        -   **Docs:** Intl Package, Freezed Package
+    -   **3.5. Initialize `main.dart`:**
+        -   Wrap the `runApp` call in `main` with `ProviderScope` and initialize Firebase.
+        -   **Example:**
+            ```dart
+            void main() async {
+              WidgetsFlutterBinding.ensureInitialized();
+              await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+              runApp(const ProviderScope(child: MyApp()));
+            }
+            ```
 
 ### Milestone 2: Core Feature Implementation (4-5 Weeks)
 
@@ -57,24 +69,51 @@ This document outlines the concrete steps for Phase 1: Foundation & Core Feature
     -   **1.2. Develop `AuthService`:**
         -   Create `auth_service.dart` in `lib/services/`.
         -   Implement methods: `signInWithEmail`, `signUpWithEmail`, `signInWithGoogle`, `signOut`, `sendPasswordResetEmail`.
+        -   **Important:** Wrap all Firebase calls in `try-catch` blocks to handle `FirebaseAuthException` and other errors gracefully.
         -   **Docs:** Email & Password Auth, Google Sign-In
     -   **1.3. Create Riverpod Providers for Auth:**
         -   Create `auth_providers.dart` in `lib/features/auth/application/`.
-        -   Create a `Provider` for your `AuthService`.
-        -   Create a `StreamProvider` that listens to `FirebaseAuth.instance.authStateChanges()` to track the current user globally.
+        -   Create a provider for your `AuthService` and a `StreamProvider` that listens to `FirebaseAuth.instance.authStateChanges()` to track the current user globally.
+        -   **Example (`auth_providers.dart`):**
+            ```dart
+            @riverpod
+            AuthService authService(AuthServiceRef ref) {
+              return AuthService(FirebaseAuth.instance);
+            }
+
+            @riverpod
+            Stream<User?> authStateChanges(AuthStateChangesRef ref) {
+              return ref.watch(authServiceProvider).authStateChanges();
+            }
+            ```
         -   **Docs:** StreamProvider, Combining Providers
     -   **1.4. Set up Protected Routing:**
         -   Configure `GoRouter` with a `redirect` logic that checks the auth state from your Riverpod provider. If the user is not logged in, redirect them to `/login`.
+        -   **Example (`router.dart`):**
+            ```dart
+            final router = GoRouter(
+              redirect: (context, state) {
+                // Use your auth provider to check login status
+                final isLoggedIn = ...; // Check auth state from Riverpod
+                if (!isLoggedIn && state.matchedLocation != '/login') {
+                  return '/login';
+                }
+                return null; // No redirect needed
+              },
+              routes: [...],
+            );
+            ```
         -   **Docs:** GoRouter Redirects
 
 2.  **Project & Dashboard:**
     -   **2.1. Define Data Models:**
         -   Create `project.dart` and `fermentation_task.dart` in `lib/models/`.
-        -   Define classes with properties, and include `toJson`/`fromJson` methods for Firestore serialization.
-        -   **Docs:** Structuring Cloud Firestore Data, Serializing JSON in Dart
+        -   Use the `freezed` package for immutable data classes and `json_serializable` to auto-generate `toJson`/`fromJson` methods.
+        -   **Docs:** Structuring Cloud Firestore Data, Serializing JSON with code generation
     -   **2.2. Implement `FirestoreService`:**
         -   Create `firestore_service.dart` in `lib/services/`.
         -   Implement CRUD (Create, Read, Update, Delete) methods for projects and tasks (e.g., `getProjectsStream`, `addProject`, `updateProject`, `deleteProject`).
+        -   **Note:** Methods should accept a `userId` to correctly query user-specific data collections (e.g., `/users/{userId}/projects`).
         -   **Docs:** Get realtime updates, Add and manage data
     -   **2.3. Build the Dashboard UI:**
         -   Create `dashboard_screen.dart` in `lib/features/projects/presentation/`.
@@ -125,5 +164,5 @@ This document outlines the concrete steps for Phase 1: Foundation & Core Feature
         -   **Docs:** flutter_blue_plus, purchases_flutter
     -   **2.2. Create Placeholder Services:**
         -   Create `bluetooth_service.dart` and `subscription_service.dart` in `lib/services/`.
-        -   Define the classes with empty methods (e.g., `Future<void> connectToDevice(String id) {}`).
+        -   Define the classes with empty or `// TODO` commented methods (e.g., `Future<void> connectToDevice(String id) async { /* TODO: Implement in Phase 2 */ }`).
         -   This sets up the architectural foundation for Phase 2 without needing to implement the full logic now.

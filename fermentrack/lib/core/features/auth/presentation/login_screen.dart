@@ -172,9 +172,9 @@ class _LoginScreenState extends State<LoginScreen> {
         // This prevents errors if user navigated away during async operation
         if (mounted) {
           // TODO: Navigate to dashboard (will be implemented in Sub-Issue 2.1.7)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful!')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Login successful!')));
         }
       } catch (e) {
         // Step 4b: Handle error case

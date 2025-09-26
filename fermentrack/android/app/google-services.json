@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1006513012406",
+    "project_id": "long-centaur-293520",
+    "storage_bucket": "long-centaur-293520.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006513012406:android:72260c23e147f0a4eb3017",
+        "android_client_info": {
+          "package_name": "com.example.fermentrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr-43whXnYiA9C7EwckSvkhvXnrcc8THE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

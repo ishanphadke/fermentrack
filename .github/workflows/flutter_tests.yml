@@ -20,7 +20,7 @@ jobs:
           channel: 'stable' # Specifies the Flutter channel (e.g., stable, beta, master)
 
       - name: Install Flutter Dependencies
-        run: flutter pub get # Fetches all dependencies specified in pubspec.yaml
+        run: cd fermentrack & flutter pub get # Fetches all dependencies specified in pubspec.yaml
 
       - name: Run Flutter Tests
         run: flutter test --coverage # Executes all unit and widget tests and generates a coverage report

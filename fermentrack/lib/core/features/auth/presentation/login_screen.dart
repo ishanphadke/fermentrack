@@ -46,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(title: const Text('Login')),
       body: Form(
         key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         child: Column(
           children: [
             const SizedBox(height: 32),

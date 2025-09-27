@@ -31,7 +31,7 @@ jobs:
       - name: Comment Code Coverage
         uses: zgosalvez/github-actions-report-lcov@55c5634f4f1085c376473dfd5971662ced3b9dc1
         with:
-            coverage-files: ßcoverage/lcov.info
+            coverage-files: coverage/lcov.info
             github-token: ${{ secrets.GITHUB_TOKEN }}
             minimum-coverage: 60 # Optional: Fails if coverage drops below this percentage
             update-comment: true

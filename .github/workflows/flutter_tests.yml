@@ -14,13 +14,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4 # Clones your repository into the workflow environment
 
+      - name: Enter Project
+        run: cd fermentrack
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2 # Sets up the Flutter SDK
         with:
           channel: 'stable' # Specifies the Flutter channel (e.g., stable, beta, master)
 
       - name: Install Flutter Dependencies
-        run: cd fermentrack & flutter pub get # Fetches all dependencies specified in pubspec.yaml
+        run: flutter pub get # Fetches all dependencies specified in pubspec.yaml
 
       - name: Run Flutter Tests
         run: flutter test --coverage # Executes all unit and widget tests and generates a coverage report

@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest # Specifies the operating system for the job
     permissions:
+      contents: read
       pull-requests: write
 
     steps:

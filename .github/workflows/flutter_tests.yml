@@ -1,0 +1,34 @@
+name: Flutter Tests
+
+on:
+  pull_request:
+    branches: 
+        - main # Triggers on pull requests targeting main branch
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  test:
+    runs-on: ubuntu-latest # Specifies the operating system for the job
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4 # Clones your repository into the workflow environment
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2 # Sets up the Flutter SDK
+        with:
+          channel: 'stable' # Specifies the Flutter channel (e.g., stable, beta, master)
+
+      - name: Install Flutter Dependencies
+        run: flutter pub get # Fetches all dependencies specified in pubspec.yaml
+
+      - name: Run Flutter Tests
+        run: flutter test --coverage # Executes all unit and widget tests and generates a coverage report
+
+      - name: Comment Code Coverage
+        uses: zgosalvez/github-actions-report-lcov@v4
+        with:
+            coverage-files: coverage/lcov.info
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            minimum-coverage: 60 # Optional: Fails if coverage drops below this percentage
+            update-comment: true

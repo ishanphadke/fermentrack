@@ -25,6 +25,9 @@ jobs:
       - name: Run Flutter Tests
         run: cd fermentrack && flutter test --coverage # Executes all unit and widget tests and generates a coverage report
 
+      - name: Set up Coverage Report
+        run: sudo apt-get update && sudo apt-get install lcov
+
       - name: Comment Code Coverage
         uses: zgosalvez/github-actions-report-lcov@v4
         with:

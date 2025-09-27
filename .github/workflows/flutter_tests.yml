@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest # Specifies the operating system for the job
+    permissions:
+      pull-requests: write
 
     steps:
       - name: Checkout Repository

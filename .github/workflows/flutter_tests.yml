@@ -20,10 +20,10 @@ jobs:
           channel: 'stable' # Specifies the Flutter channel (e.g., stable, beta, master)
 
       - name: Install Flutter Dependencies
-        run: cd fermentrack && flutter pub get # Fetches all dependencies specified in pubspec.yaml
+        run: flutter pub get # Fetches all dependencies specified in pubspec.yaml
 
       - name: Run Flutter Tests
-        run: cd fermentrack && flutter test --coverage # Executes all unit and widget tests and generates a coverage report
+        run: flutter test --coverage # Executes all unit and widget tests and generates a coverage report
 
       - name: Setup LCOV
         uses: hrishikesh-kadam/setup-lcov@6c1aa0cc9e1c02f9f58f01ac599f1064ccc83470

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fermentrack/core/utils/email_validator.dart';
 import 'package:fermentrack/providers/auth/auth_providers.dart';
 import 'package:fermentrack/services/auth_service.dart';
 
@@ -71,7 +72,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
                   hintText: 'Enter your email',
                   prefixIcon: Icon(Icons.email),
                 ),
-                validator: _validateEmail,
+                validator: EmailValidator.validate,
               ),
               const SizedBox(height: 24),
               // Send Reset Email Button
@@ -109,27 +110,6 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
   void dispose() {
     _emailController.dispose();
     super.dispose();
-  }
-
-  // VALIDATION METHODS
-
-  /// Validates email field
-  ///
-  /// Checks:
-  /// - Email is not empty
-  /// - Email contains @ symbol (basic format validation)
-  ///
-  /// Returns:
-  /// - null if valid
-  /// - Error message string if invalid
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter your email';
-    }
-    if (!value.contains('@')) {
-      return 'Please enter a valid email';
-    }
-    return null;
   }
 
   // BUSINESS LOGIC METHODS

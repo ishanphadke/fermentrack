@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fermentrack/core/features/auth/presentation/signup_screen.dart';
 import 'package:fermentrack/core/features/auth/presentation/password_reset_screen.dart';
+import 'package:fermentrack/core/utils/email_validator.dart';
 import 'package:fermentrack/providers/auth/auth_providers.dart';
 import 'package:fermentrack/services/auth_service.dart';
 
@@ -68,15 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   hintText: 'Enter your email',
                   prefixIcon: Icon(Icons.email),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
+                validator: EmailValidator.validate,
               ),
               const SizedBox(height: 16),
               TextFormField(

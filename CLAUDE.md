@@ -27,6 +27,6 @@ Act as a senior full-stack developer and technical lead for the Fermentrack proj
 -   **Asynchronous Code:** Use `async/await` for all asynchronous operations. Clearly manage loading, data, and error states in the UI, providing feedback to the user.
 -   **Commits:** Write clear and descriptive Git commit messages. Reference issue numbers where applicable.
 -   **Testing:**
-    -   **Unit Tests:** For all services, models (`toJson`/`fromJson`), and pure Dart logic. Use mocking libraries like `mockito` to isolate dependencies. Any third party tools should be mocked using `mockito`.
+    -   **Unit Tests:** For all services, models (`toJson`/`fromJson`), and pure Dart logic. Use mocking libraries like `mockito` to isolate dependencies. Any third party tools should be mocked using `mockito`. Additionally, ensure that all async tests for providers that use stream controller keep the stream open by using the listen() method before reading from the container
     -   **Widget Tests:** For all screens and shared widgets to verify UI rendering and user interactions.
     -   **Integration Tests:** For critical user flows like authentication, project creation, and data logging.

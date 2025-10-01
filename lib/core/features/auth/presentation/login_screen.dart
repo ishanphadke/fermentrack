@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fermentrack/core/features/auth/presentation/signup_screen.dart';
+import 'package:fermentrack/providers/auth/auth_providers.dart';
+import 'package:fermentrack/services/auth_service.dart';
 
 /// Login screen for user authentication
 ///
 /// This is a beginner-level training exercise that demonstrates:
-/// - Form validation with GlobalKey<FormState>
+/// - Form validation with `GlobalKey<FormState>`
 /// - TextFormField usage with validators
 /// - Loading state management
 /// - Async operation handling with mounted check
+/// - Riverpod integration for state management
+/// - Firebase Authentication integration
 /// - Basic Material Design principles
 ///
 /// Part of Sub-Issue 2.1.1: Create Basic Login Screen UI
 /// Difficulty: Beginner
-/// Learning objectives: Flutter form widgets, validation, state management
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+/// Learning objectives: Flutter form widgets, validation, state management, Riverpod
+class LoginScreen extends ConsumerStatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   // FORM CONTROLLERS AND STATE
 
   /// GlobalKey for managing form validation state
@@ -44,12 +50,15 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Form(
-        key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Column(
-          children: [
-            const SizedBox(height: 32),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 32),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -81,9 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your password';
                 }
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
-                }
+                // No length requirement for login - Firebase will validate
+                // Only signup enforces password strength requirements
                 return null;
               },
             ),
@@ -110,14 +118,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // TODO: Navigate to signup (Sub-Issue 2.1.4)
-                    debugPrint('Navigate to signup');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SignupScreen(),
+                      ),
+                    );
                   },
                   child: const Text('Don\'t have an account? Sign Up'),
                 ),
               ],
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -144,14 +157,18 @@ class _LoginScreenState extends State<LoginScreen> {
   /// - Loading state management with setState()
   /// - Async operation handling with try-catch-finally
   /// - mounted check to prevent setState() on disposed widgets
+  /// - Riverpod provider usage (ref.read)
+  /// - Firebase Authentication integration
   /// - User feedback with SnackBar messages
+  /// - Error handling with AuthException
   ///
   /// Flow:
   /// 1. Validate form fields
   /// 2. Set loading state to true
-  /// 3. Simulate async login operation (will be replaced with real AuthService)
-  /// 4. Show success/error feedback
-  /// 5. Reset loading state in finally block
+  /// 3. Get AuthService from Riverpod provider
+  /// 4. Call signInWithEmail method
+  /// 5. Show success/error feedback
+  /// 6. Reset loading state in finally block
   void _handleLogin() async {
     // Step 1: Validate all form fields
     // _formKey.currentState!.validate() calls validator() on each TextFormField
@@ -163,30 +180,48 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       try {
-        // Step 3: Perform login operation
-        // TODO: Call AuthService here (will be implemented in Sub-Issue 2.1.2)
-        // For now, simulate network delay with Future.delayed
-        await Future.delayed(const Duration(seconds: 2)); // Mock delay
+        // Step 3: Get AuthService from Riverpod provider
+        // ref.read is used for one-time reads (like calling a method)
+        // ref.watch would be used for reactive updates
+        final authService = ref.read(authServiceProvider);
 
-        // Step 4a: Handle success case
+        // Step 4: Perform Firebase login operation
+        await authService.signInWithEmail(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+
+        // Step 5a: Handle success case
         // Check if widget is still mounted before accessing context
         // This prevents errors if user navigated away during async operation
         if (mounted) {
-          // TODO: Navigate to dashboard (will be implemented in Sub-Issue 2.1.7)
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Login successful!')));
+          // TODO: Navigate to dashboard (will be implemented in Sub-Issue 2.1.7)
+          // The authStateProvider will automatically update and trigger navigation
         }
-      } catch (e) {
-        // Step 4b: Handle error case
-        // Show error message to user if login fails
+      } on AuthException catch (e) {
+        // Step 5b: Handle authentication-specific errors
+        // AuthException contains user-friendly error messages
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${e.toString()}')),
+            SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+          );
+        }
+      } catch (e) {
+        // Step 5c: Handle unexpected errors
+        // Show generic error message for any other exceptions
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('An unexpected error occurred: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
-        // Step 5: Reset loading state
+        // Step 6: Reset loading state
         // This runs regardless of success/failure
         // Always check mounted before calling setState()
         if (mounted) {

@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:fermentrack/core/features/auth/presentation/login_screen.dart';
+import 'package:fermentrack/providers/auth/auth_providers.dart';
+import 'package:fermentrack/services/auth_service.dart';
+
+// Generate mocks for FirebaseAuth and User
+@GenerateMocks([auth.FirebaseAuth, auth.User, auth.UserCredential])
+import 'login_screen_test.mocks.dart';
 
 /// Widget tests for LoginScreen (Sub-Issue 2.1.1)
 ///
@@ -21,11 +31,36 @@ import 'package:fermentrack/core/features/auth/presentation/login_screen.dart';
 
 void main() {
   group('LoginScreen Widget Tests', () {
+    late MockFirebaseAuth mockFirebaseAuth;
+    late MockUser mockUser;
+    late MockUserCredential mockUserCredential;
+
+    setUp(() {
+      // Initialize mocks before each test
+      mockFirebaseAuth = MockFirebaseAuth();
+      mockUser = MockUser();
+      mockUserCredential = MockUserCredential();
+
+      // Setup default mock behaviors
+      when(mockUserCredential.user).thenReturn(mockUser);
+      when(mockUser.uid).thenReturn('test-uid');
+      when(mockUser.email).thenReturn('test@example.com');
+    });
 
     // Helper function to create testable widget
+    // Wraps LoginScreen with ProviderScope for Riverpod support
+    // Overrides authServiceProvider with mock AuthService
     Widget createLoginScreen() {
-      return const MaterialApp(
-        home: LoginScreen(),
+      return ProviderScope(
+        overrides: [
+          // Override the authServiceProvider with a mock AuthService
+          authServiceProvider.overrideWithValue(
+            AuthService(firebaseAuth: mockFirebaseAuth),
+          ),
+        ],
+        child: const MaterialApp(
+          home: LoginScreen(),
+        ),
       );
     }
 
@@ -174,6 +209,19 @@ void main() {
 
       testWidgets('should show loading state during login', (tester) async {
         // Arrange
+        // Mock successful login with a delay to test loading state
+        when(
+          mockFirebaseAuth.signInWithEmailAndPassword(
+            email: anyNamed('email'),
+            password: anyNamed('password'),
+          ),
+        ).thenAnswer(
+          (_) async {
+            await Future.delayed(const Duration(milliseconds: 100));
+            return mockUserCredential;
+          },
+        );
+
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Submit valid form
@@ -195,6 +243,14 @@ void main() {
 
       testWidgets('should show success message after successful login', (tester) async {
         // Arrange
+        // Mock successful login
+        when(
+          mockFirebaseAuth.signInWithEmailAndPassword(
+            email: anyNamed('email'),
+            password: anyNamed('password'),
+          ),
+        ).thenAnswer((_) async => mockUserCredential);
+
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Submit valid form and wait for completion

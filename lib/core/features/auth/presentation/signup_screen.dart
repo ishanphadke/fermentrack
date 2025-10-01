@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fermentrack/providers/auth/auth_providers.dart';
 import 'package:fermentrack/services/auth_service.dart';
+import 'package:fermentrack/core/utils/email_validator.dart';
 import 'package:fermentrack/core/utils/password_validator.dart';
 
 /// Signup screen for user registration
@@ -79,7 +80,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   hintText: 'Enter your email',
                   prefixIcon: Icon(Icons.email),
                 ),
-                validator: _validateEmail,
+                validator: EmailValidator.validate,
               ),
               const SizedBox(height: 16),
               // Password Field
@@ -155,25 +156,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   // VALIDATION METHODS
-
-  /// Validates email field
-  ///
-  /// Checks:
-  /// - Email is not empty
-  /// - Email contains @ symbol (basic format validation)
-  ///
-  /// Returns:
-  /// - null if valid
-  /// - Error message string if invalid
-  String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter your email';
-    }
-    if (!value.contains('@')) {
-      return 'Please enter a valid email';
-    }
-    return null;
-  }
 
   /// Validates password field with strength requirements
   ///

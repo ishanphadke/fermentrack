@@ -97,10 +97,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ElevatedButton(
               onPressed: _isLoading ? null : _handleLogin,
               child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? Container(
+                      color: const Color.fromRGBO(165, 150, 150, 1),
+                      child: Center(child: CircularProgressIndicator()),
                     )
                   : const Text('Login'),
             ),
@@ -192,9 +191,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // Check if widget is still mounted before accessing context
         // This prevents errors if user navigated away during async operation
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful!')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Login successful!')));
           // TODO: Navigate to dashboard (will be implemented in Sub-Issue 2.1.7)
           // The authStateProvider will automatically update and trigger navigation
         }
@@ -203,10 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // AuthException contains user-friendly error messages
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(e.message), backgroundColor: Colors.red),
           );
         }
       } catch (e) {

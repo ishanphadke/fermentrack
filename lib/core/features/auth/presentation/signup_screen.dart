@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fermentrack/providers/auth/auth_providers.dart';
 import 'package:fermentrack/services/auth_service.dart';
+import 'package:fermentrack/core/utils/password_validator.dart';
 
 /// Signup screen for user registration
 ///
@@ -50,24 +51,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   /// - false: Shows normal signup button, enables interaction
   bool _isLoading = false;
 
-  /// Password strength score (0-4)
+  /// Password strength score (0-5)
   /// Used to calculate and display password strength indicator
-  /// 0: Very weak, 1: Weak, 2: Medium, 3: Strong, 4: Very strong
+  /// 0: Empty, 1: Very weak, 2-3: Medium, 4-5: Strong
+  /// Calculated using PasswordValidator.calculateStrength()
   int _passwordStrength = 0;
-
-  // REGEX PATTERNS FOR PASSWORD VALIDATION
-
-  /// RegExp for checking uppercase letters
-  final _uppercaseRegex = RegExp(r'[A-Z]');
-
-  /// RegExp for checking lowercase letters
-  final _lowercaseRegex = RegExp(r'[a-z]');
-
-  /// RegExp for checking digits
-  final _digitRegex = RegExp(r'[0-9]');
-
-  /// RegExp for checking special characters
-  final _specialCharRegex = RegExp(r'[!@#$%^&*(),.?":{}|<>]');
 
   @override
   Widget build(BuildContext context) {
@@ -105,9 +93,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 validator: _validatePassword,
                 onChanged: (value) {
-                  // Update password strength in real-time
+                  // Update password strength in real-time using PasswordValidator
                   setState(() {
-                    _passwordStrength = _calculatePasswordStrength(value);
+                    _passwordStrength = PasswordValidator.calculateStrength(value);
                   });
                 },
               ),
@@ -189,37 +177,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   /// Validates password field with strength requirements
   ///
-  /// Checks:
-  /// - Password is not empty
-  /// - Password is at least 8 characters
-  /// - Password contains uppercase letter
-  /// - Password contains lowercase letter
-  /// - Password contains digit
-  /// - Password contains special character
+  /// Delegates to PasswordValidator utility for validation logic.
+  /// See PasswordValidator.validate() for detailed requirements.
   ///
   /// Returns:
   /// - null if valid
   /// - Error message string if invalid
   String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please enter a password';
-    }
-    if (value.length < 8) {
-      return 'Password must be at least 8 characters';
-    }
-    if (!_uppercaseRegex.hasMatch(value)) {
-      return 'Password must contain at least one uppercase letter';
-    }
-    if (!_lowercaseRegex.hasMatch(value)) {
-      return 'Password must contain at least one lowercase letter';
-    }
-    if (!_digitRegex.hasMatch(value)) {
-      return 'Password must contain at least one digit';
-    }
-    if (!_specialCharRegex.hasMatch(value)) {
-      return 'Password must contain at least one special character';
-    }
-    return null;
+    return PasswordValidator.validate(value);
   }
 
   /// Validates confirm password field
@@ -241,36 +206,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     return null;
   }
 
-  // PASSWORD STRENGTH CALCULATION
-
-  /// Calculates password strength score (0-5)
-  ///
-  /// Awards points for:
-  /// - Length >= 8 characters (1 point)
-  /// - Contains uppercase letter (1 point)
-  /// - Contains lowercase letter (1 point)
-  /// - Contains digit (1 point)
-  /// - Contains special character (1 point)
-  ///
-  /// Returns:
-  /// - 0-1: Weak
-  /// - 2-3: Medium
-  /// - 4-5: Strong
-  int _calculatePasswordStrength(String password) {
-    int strength = 0;
-
-    if (password.length >= 8) strength++;
-    if (_uppercaseRegex.hasMatch(password)) strength++;
-    if (_lowercaseRegex.hasMatch(password)) strength++;
-    if (_digitRegex.hasMatch(password)) strength++;
-    if (_specialCharRegex.hasMatch(password)) strength++;
-
-    return strength;
-  }
-
   /// Builds password strength indicator widget
   ///
-  /// Visual feedback showing password strength:
+  /// Visual feedback showing password strength using PasswordValidator helpers:
   /// - Red: Weak (0-1 criteria met)
   /// - Orange: Medium (2-3 criteria met)
   /// - Green: Strong (4-5 criteria met)
@@ -279,19 +217,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return const SizedBox.shrink();
     }
 
-    Color strengthColor;
-    String strengthText;
-
-    if (_passwordStrength <= 1) {
-      strengthColor = Colors.red;
-      strengthText = 'Weak';
-    } else if (_passwordStrength <= 3) {
-      strengthColor = Colors.orange;
-      strengthText = 'Medium';
-    } else {
-      strengthColor = Colors.green;
-      strengthText = 'Strong';
-    }
+    // Get strength label and color from PasswordValidator utility
+    final strengthColor = PasswordValidator.getStrengthColor(_passwordStrength);
+    final strengthText = PasswordValidator.getStrengthLabel(_passwordStrength);
 
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),

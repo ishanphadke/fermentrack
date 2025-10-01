@@ -50,12 +50,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Form(
-        key: _formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        child: Column(
-          children: [
-            const SizedBox(height: 32),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 32),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -87,9 +90,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 if (value == null || value.isEmpty) {
                   return 'Please enter your password';
                 }
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
-                }
+                // No length requirement for login - Firebase will validate
+                // Only signup enforces password strength requirements
                 return null;
               },
             ),
@@ -127,7 +129,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ],
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

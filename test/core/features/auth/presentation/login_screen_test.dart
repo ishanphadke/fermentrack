@@ -158,18 +158,19 @@ void main() {
         expect(find.text('Please enter your password'), findsOneWidget);
       });
 
-      testWidgets('should show error for short password', (tester) async {
+      testWidgets('should accept any non-empty password for login', (tester) async {
         // Arrange
         await tester.pumpWidget(createLoginScreen());
 
-        // Act - Enter valid email but short password
+        // Act - Enter valid email and any non-empty password
+        // Note: Login doesn't enforce password strength - Firebase validates
         await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
-        await tester.enterText(find.byType(TextFormField).last, '123'); // Less than 6 characters
+        await tester.enterText(find.byType(TextFormField).last, '123'); // Any password is accepted
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
 
-        // Assert - Password length validation error should appear
-        expect(find.text('Password must be at least 6 characters'), findsOneWidget);
+        // Assert - No password validation error should appear (only empty check)
+        expect(find.text('Please enter your password'), findsNothing);
       });
 
       testWidgets('should accept valid password', (tester) async {
@@ -184,24 +185,22 @@ void main() {
 
         // Assert - No password validation errors should appear
         expect(find.text('Please enter your password'), findsNothing);
-        expect(find.text('Password must be at least 6 characters'), findsNothing);
       });
     });
 
     group('Form Submission Tests', () {
-      testWidgets('should prevent submission with invalid data', (tester) async {
+      testWidgets('should prevent submission with invalid email', (tester) async {
         // Arrange
         await tester.pumpWidget(createLoginScreen());
 
-        // Act - Try to submit with invalid data
+        // Act - Try to submit with invalid email but valid password
         await tester.enterText(find.byType(TextFormField).first, 'invalid-email');
-        await tester.enterText(find.byType(TextFormField).last, '123'); // Too short
+        await tester.enterText(find.byType(TextFormField).last, 'anypassword');
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
 
-        // Assert - Form should not submit, validation errors should show
+        // Assert - Form should not submit, email validation error should show
         expect(find.text('Please enter a valid email'), findsOneWidget);
-        expect(find.text('Password must be at least 6 characters'), findsOneWidget);
 
         // Success message should not appear
         expect(find.text('Login successful!'), findsNothing);

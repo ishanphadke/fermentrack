@@ -238,6 +238,7 @@ class AuthService {
       debugPrint('AuthService: Attempting to sign out current user');
 
       await _firebaseAuth.signOut();
+      await _googleSignIn.signOut();
 
       debugPrint('AuthService: Sign out successful');
     } catch (e) {
@@ -435,7 +436,7 @@ class AuthService {
         default:
           throw AuthException(_handleFirebaseAuthError(e));
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Check if this is a popup_closed error from PlatformException
       if (e.toString().contains('popup_closed')) {
         debugPrint(

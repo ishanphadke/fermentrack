@@ -12,15 +12,32 @@
           "package_name": "com.example.fermentrack"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1006513012406-r390bk6200gg0br6gmqi10q2ir4b3msc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "{{API-KEY}}"
+          "current_key": "AIzaSyDr-43whXnYiA9C7EwckSvkhvXnrcc8THE"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1006513012406-eje49er1ukhtn2ge6v28bcbda9lml09e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1006513012406-p0kt0v7pkiemq1onst8bhq3q6k2pibt5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fermentrack"
+              }
+            }
+          ]
         }
       }
     }

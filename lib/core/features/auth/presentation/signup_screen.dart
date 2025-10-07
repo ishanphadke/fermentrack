@@ -128,6 +128,28 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     : const Text('Create Account'),
               ),
               const SizedBox(height: 16),
+              // Divider with OR text
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('OR'),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Google Sign-In Button
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _handleGoogleSignIn,
+                icon: const Icon(Icons.login, size: 24),
+                label: const Text('Sign up with Google'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 16),
               // Navigation to Login
               TextButton(
                 onPressed: () {
@@ -317,6 +339,75 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             _isLoading = false;
           });
         }
+      }
+    }
+  }
+
+  /// Handles Google Sign-In process
+  ///
+  /// This method demonstrates:
+  /// - Third-party authentication integration
+  /// - Handling user cancellation (null result)
+  /// - Loading state management
+  /// - Error handling for OAuth flow
+  /// - User feedback with SnackBar
+  /// - Navigation after successful signup
+  ///
+  /// Flow:
+  /// 1. Set loading state
+  /// 2. Call AuthService.signInWithGoogle()
+  /// 3. Handle null (user cancelled)
+  /// 4. Handle success and navigate to login
+  /// 5. Handle errors
+  /// 6. Reset loading state
+  void _handleGoogleSignIn() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authService = ref.read(authServiceProvider);
+
+      // Perform Google Sign-In
+      final user = await authService.signInWithGoogle();
+
+      // Handle user cancellation
+      if (user == null) {
+        debugPrint('Google Sign-In cancelled by user');
+        return; // Don't show error, user intentionally cancelled
+      }
+
+      // Handle success
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google Sign-In successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Navigate back to login screen
+        Navigator.pop(context);
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An unexpected error occurred: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }

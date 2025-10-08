@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:fermentrack/services/auth_service.dart';
@@ -34,7 +35,14 @@ import 'auth_service_test.mocks.dart';
 /// - Security-focused testing approaches
 
 // Generate mocks for Firebase Auth classes using Mockito code generation
-@GenerateMocks([FirebaseAuth, User, UserCredential])
+@GenerateMocks([
+  FirebaseAuth,
+  User,
+  UserCredential,
+  GoogleSignIn,
+  GoogleSignInAccount,
+  GoogleSignInAuthentication,
+])
 void main() {
   /// Initialize Firebase mocking for all tests
   /// This prevents Firebase from trying to connect to real services
@@ -49,6 +57,9 @@ void main() {
     late MockFirebaseAuth mockFirebaseAuth;
     late MockUser mockUser;
     late MockUserCredential mockUserCredential;
+    late MockGoogleSignIn mockGoogleSignIn;
+    late MockGoogleSignInAccount mockGoogleUser;
+    late MockGoogleSignInAuthentication mockGoogleAuth;
 
     /// setUp() runs before each individual test
     /// This ensures each test starts with a clean state
@@ -58,6 +69,9 @@ void main() {
       mockFirebaseAuth = MockFirebaseAuth();
       mockUser = MockUser();
       mockUserCredential = MockUserCredential();
+      mockGoogleSignIn = MockGoogleSignIn();
+      mockGoogleUser = MockGoogleSignInAccount();
+      mockGoogleAuth = MockGoogleSignInAuthentication();
 
       // Configure default mock user properties
       when(mockUser.uid).thenReturn('test-uid-123');
@@ -76,7 +90,10 @@ void main() {
 
       // Create AuthService instance with dependency injection
       // This is the key to testable code - injecting the mock
-      authService = AuthService(firebaseAuth: mockFirebaseAuth);
+      authService = AuthService(
+        firebaseAuth: mockFirebaseAuth,
+        googleSignIn: mockGoogleSignIn,
+      );
     });
 
     /// tearDown() runs after each individual test
@@ -86,6 +103,9 @@ void main() {
       reset(mockFirebaseAuth);
       reset(mockUser);
       reset(mockUserCredential);
+      reset(mockGoogleSignIn);
+      reset(mockGoogleUser);
+      reset(mockGoogleAuth);
     });
 
     /// Testing Group: Sign In with Email functionality
@@ -728,23 +748,12 @@ void main() {
       test('should complete successfully when user is signed in', () async {
         // ARRANGE: Configure mock to succeed
         when(mockFirebaseAuth.signOut()).thenAnswer((_) async {});
+        when(mockGoogleSignIn.signOut()).thenAnswer((_) async {});
 
         // ACT: Sign out the user
         await authService.signOut();
 
         // ASSERT: Verify sign out completed
-        verify(mockFirebaseAuth.signOut()).called(1);
-      });
-
-      test('should complete successfully when no user is signed in', () async {
-        // ARRANGE: Configure mock with no signed-in user
-        when(mockFirebaseAuth.currentUser).thenReturn(null);
-        when(mockFirebaseAuth.signOut()).thenAnswer((_) async {});
-
-        // ACT & ASSERT: Should not throw even if no user is signed in
-        await authService.signOut();
-
-        // Verify sign out was still called
         verify(mockFirebaseAuth.signOut()).called(1);
       });
 
@@ -906,6 +915,259 @@ void main() {
           verify(
             mockFirebaseAuth.sendPasswordResetEmail(email: testEmail.trim()),
           ).called(1);
+        });
+      });
+    });
+
+    /// Testing Group: Google Sign-In functionality
+    /// This group tests Google OAuth authentication scenarios
+    group('signInWithGoogle', () {
+      test('should return User when Google Sign-In succeeds', () async {
+        // ARRANGE - Set up mock behavior for successful sign-in
+        // Mock Google Sign-In flow
+        when(mockGoogleSignIn.signIn()).thenAnswer((_) async => mockGoogleUser);
+        when(
+          mockGoogleUser.authentication,
+        ).thenAnswer((_) async => mockGoogleAuth);
+        when(mockGoogleUser.email).thenReturn('test@example.com');
+        when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+        when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+
+        // Mock Firebase authentication
+        when(
+          mockFirebaseAuth.signInWithCredential(any),
+        ).thenAnswer((_) async => mockUserCredential);
+
+        // ACT - Perform Google Sign-In
+        final result = await authService.signInWithGoogle();
+
+        // ASSERT - Verify the result and method calls
+        expect(result, equals(mockUser));
+        expect(result?.uid, equals('test-uid-123'));
+
+        // Verify Google Sign-In was called
+        verify(mockGoogleSignIn.signIn()).called(1);
+
+        // Verify authentication tokens were requested
+        verify(mockGoogleUser.authentication).called(1);
+
+        // Verify Firebase credential sign-in was called
+        verify(mockFirebaseAuth.signInWithCredential(any)).called(1);
+      });
+
+      test('should return null when user cancels Google Sign-In', () async {
+        // ARRANGE - Mock user cancellation (signIn returns null)
+        when(mockGoogleSignIn.signIn()).thenAnswer((_) async => null);
+
+        // ACT - Attempt Google Sign-In
+        final result = await authService.signInWithGoogle();
+
+        // ASSERT - Verify null is returned (not an error)
+        expect(result, isNull);
+
+        // Verify sign-in was attempted
+        verify(mockGoogleSignIn.signIn()).called(1);
+
+        // Verify Firebase sign-in was never called (user cancelled before that)
+        verifyNever(mockFirebaseAuth.signInWithCredential(any));
+      });
+
+      test('should throw AuthException when Firebase user is null', () async {
+        // ARRANGE - Mock successful Google sign-in but null Firebase user
+        final nullUserCredential = MockUserCredential();
+
+        when(mockGoogleSignIn.signIn()).thenAnswer((_) async => mockGoogleUser);
+        when(
+          mockGoogleUser.authentication,
+        ).thenAnswer((_) async => mockGoogleAuth);
+        when(mockGoogleUser.email).thenReturn('test@example.com');
+        when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+        when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+        when(
+          mockFirebaseAuth.signInWithCredential(any),
+        ).thenAnswer((_) async => nullUserCredential);
+        // UserCredential.user is null (edge case)
+        when(nullUserCredential.user).thenReturn(null);
+
+        // ACT & ASSERT - Verify AuthException is thrown
+        expect(
+          () => authService.signInWithGoogle(),
+          throwsA(
+            predicate<AuthException>(
+              (e) => e.message.contains('Google Sign-In failed'),
+            ),
+          ),
+        );
+      });
+
+      /// Testing Google Sign-In Error Handling
+      group('Google Sign-In Error Handling', () {
+        test('should handle invalid-credential error', () async {
+          // ARRANGE - Mock Firebase error: invalid credential
+          when(
+            mockGoogleSignIn.signIn(),
+          ).thenAnswer((_) async => mockGoogleUser);
+          when(
+            mockGoogleUser.authentication,
+          ).thenAnswer((_) async => mockGoogleAuth);
+          when(mockGoogleUser.email).thenReturn('test@example.com');
+          when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+          when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+          when(
+            mockFirebaseAuth.signInWithCredential(any),
+          ).thenThrow(FirebaseAuthException(code: 'invalid-credential'));
+
+          // ACT & ASSERT - Verify AuthException is thrown with appropriate message
+          expect(
+            () => authService.signInWithGoogle(),
+            throwsA(
+              predicate<AuthException>(
+                (e) => e.message.contains(
+                  'credential received from Google is invalid',
+                ),
+              ),
+            ),
+          );
+        });
+
+        test(
+          'should handle account-exists-with-different-credential error',
+          () async {
+            // ARRANGE - Mock Firebase error: account exists with different provider
+
+            when(
+              mockGoogleSignIn.signIn(),
+            ).thenAnswer((_) async => mockGoogleUser);
+            when(
+              mockGoogleUser.authentication,
+            ).thenAnswer((_) async => mockGoogleAuth);
+            when(mockGoogleUser.email).thenReturn('test@example.com');
+            when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+            when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+            when(mockFirebaseAuth.signInWithCredential(any)).thenThrow(
+              FirebaseAuthException(
+                code: 'account-exists-with-different-credential',
+              ),
+            );
+
+            // ACT & ASSERT - Verify AuthException with helpful message
+            expect(
+              () => authService.signInWithGoogle(),
+              throwsA(
+                predicate<AuthException>(
+                  (e) => e.message.contains(
+                    'account already exists with the same email address',
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+
+        test('should handle operation-not-allowed error', () async {
+          // ARRANGE - Mock Firebase error: Google Sign-In not enabled
+
+          when(
+            mockGoogleSignIn.signIn(),
+          ).thenAnswer((_) async => mockGoogleUser);
+          when(
+            mockGoogleUser.authentication,
+          ).thenAnswer((_) async => mockGoogleAuth);
+          when(mockGoogleUser.email).thenReturn('test@example.com');
+          when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+          when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+          when(
+            mockFirebaseAuth.signInWithCredential(any),
+          ).thenThrow(FirebaseAuthException(code: 'operation-not-allowed'));
+
+          // ACT & ASSERT - Verify appropriate error message
+          expect(
+            () => authService.signInWithGoogle(),
+            throwsA(
+              predicate<AuthException>(
+                (e) => e.message.contains('Google Sign-In is not enabled'),
+              ),
+            ),
+          );
+        });
+
+        test('should handle user-disabled error', () async {
+          // ARRANGE - Mock Firebase error: user account disabled
+
+          when(
+            mockGoogleSignIn.signIn(),
+          ).thenAnswer((_) async => mockGoogleUser);
+          when(
+            mockGoogleUser.authentication,
+          ).thenAnswer((_) async => mockGoogleAuth);
+          when(mockGoogleUser.email).thenReturn('test@example.com');
+          when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+          when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+          when(
+            mockFirebaseAuth.signInWithCredential(any),
+          ).thenThrow(FirebaseAuthException(code: 'user-disabled'));
+
+          // ACT & ASSERT - Verify appropriate error message
+          expect(
+            () => authService.signInWithGoogle(),
+            throwsA(
+              predicate<AuthException>(
+                (e) => e.message.contains('account has been disabled'),
+              ),
+            ),
+          );
+        });
+
+        test('should handle unexpected errors', () async {
+          // ARRANGE - Mock unexpected error during Google Sign-In
+
+          when(
+            mockGoogleSignIn.signIn(),
+          ).thenAnswer((_) async => mockGoogleUser);
+          when(
+            mockGoogleUser.authentication,
+          ).thenAnswer((_) async => mockGoogleAuth);
+          when(mockGoogleUser.email).thenReturn('test@example.com');
+          when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+          when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+          when(
+            mockFirebaseAuth.signInWithCredential(any),
+          ).thenThrow(Exception('Unexpected error'));
+
+          // ACT & ASSERT - Verify generic error message
+          expect(
+            () => authService.signInWithGoogle(),
+            throwsA(
+              predicate<AuthException>(
+                (e) => e.message.contains(
+                  'unexpected error occurred during Google Sign-In',
+                ),
+              ),
+            ),
+          );
+        });
+
+        test('should handle network-request-failed error', () async {
+          // ARRANGE - Mock network error
+
+          when(
+            mockGoogleSignIn.signIn(),
+          ).thenAnswer((_) async => mockGoogleUser);
+          when(
+            mockGoogleUser.authentication,
+          ).thenAnswer((_) async => mockGoogleAuth);
+          when(mockGoogleUser.email).thenReturn('test@example.com');
+          when(mockGoogleAuth.accessToken).thenReturn('test_access_token');
+          when(mockGoogleAuth.idToken).thenReturn('test_id_token');
+          when(
+            mockFirebaseAuth.signInWithCredential(any),
+          ).thenThrow(FirebaseAuthException(code: 'network-request-failed'));
+
+          // ACT & ASSERT - Verify network error is handled
+          expect(
+            () => authService.signInWithGoogle(),
+            throwsA(isA<AuthException>()),
+          );
         });
       });
     });

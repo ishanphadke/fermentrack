@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
-import 'package:fermentrack/core/utils/email_validator.dart';
-import 'package:fermentrack/core/utils/password_validator.dart';
+import '../../../../middleware/auth/providers/auth_providers.dart';
+import '../../../../middleware/auth/services/auth_service.dart';
+import '../../../utils/email_validator.dart';
+import '../../../utils/password_validator.dart';
 
 /// Signup screen for user registration
 ///
@@ -96,7 +96,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 onChanged: (value) {
                   // Update password strength in real-time using PasswordValidator
                   setState(() {
-                    _passwordStrength = PasswordValidator.calculateStrength(value);
+                    _passwordStrength = PasswordValidator.calculateStrength(
+                      value,
+                    );
                   });
                 },
               ),

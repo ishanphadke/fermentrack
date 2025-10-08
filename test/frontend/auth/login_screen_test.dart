@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:fermentrack/core/features/auth/presentation/login_screen.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import '../../../lib/frontend/features/auth/presentation/login_screen.dart';
+import '../../../lib/middleware/auth/providers/auth_providers.dart';
+import '../../../lib/middleware/auth/services/auth_service.dart';
 
 // Generate mocks for FirebaseAuth and User
 @GenerateMocks([auth.FirebaseAuth, auth.User, auth.UserCredential])
@@ -58,9 +58,7 @@ void main() {
             AuthService(firebaseAuth: mockFirebaseAuth),
           ),
         ],
-        child: const MaterialApp(
-          home: LoginScreen(),
-        ),
+        child: const MaterialApp(home: LoginScreen()),
       );
     }
 
@@ -71,7 +69,10 @@ void main() {
 
         // Act & Assert - Verify all UI elements are present
         expect(find.text('Login'), findsNWidgets(2)); // AppBar title + Button
-        expect(find.byType(TextFormField), findsNWidgets(2)); // Email and password fields
+        expect(
+          find.byType(TextFormField),
+          findsNWidgets(2),
+        ); // Email and password fields
         expect(find.text('Email'), findsOneWidget);
         expect(find.text('Password'), findsOneWidget);
         expect(find.text('Forgot Password?'), findsOneWidget);
@@ -120,7 +121,10 @@ void main() {
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Enter invalid email and trigger validation
-        await tester.enterText(find.byType(TextFormField).first, 'invalid-email');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'invalid-email',
+        );
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
 
@@ -133,7 +137,10 @@ void main() {
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Enter valid email
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.enterText(find.byType(TextFormField).last, 'password123');
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
@@ -150,7 +157,10 @@ void main() {
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Enter valid email but leave password empty
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
 
@@ -158,14 +168,22 @@ void main() {
         expect(find.text('Please enter your password'), findsOneWidget);
       });
 
-      testWidgets('should accept any non-empty password for login', (tester) async {
+      testWidgets('should accept any non-empty password for login', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Enter valid email and any non-empty password
         // Note: Login doesn't enforce password strength - Firebase validates
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
-        await tester.enterText(find.byType(TextFormField).last, '123'); // Any password is accepted
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
+        await tester.enterText(
+          find.byType(TextFormField).last,
+          '123',
+        ); // Any password is accepted
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
 
@@ -178,7 +196,10 @@ void main() {
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Enter valid credentials
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.enterText(find.byType(TextFormField).last, 'password123');
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
@@ -189,12 +210,17 @@ void main() {
     });
 
     group('Form Submission Tests', () {
-      testWidgets('should prevent submission with invalid email', (tester) async {
+      testWidgets('should prevent submission with invalid email', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Try to submit with invalid email but valid password
-        await tester.enterText(find.byType(TextFormField).first, 'invalid-email');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'invalid-email',
+        );
         await tester.enterText(find.byType(TextFormField).last, 'anypassword');
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
@@ -214,17 +240,18 @@ void main() {
             email: anyNamed('email'),
             password: anyNamed('password'),
           ),
-        ).thenAnswer(
-          (_) async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            return mockUserCredential;
-          },
-        );
+        ).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return mockUserCredential;
+        });
 
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Submit valid form
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.enterText(find.byType(TextFormField).last, 'password123');
         await tester.tap(find.byType(ElevatedButton));
         await tester.pump(); // Trigger the loading state
@@ -233,14 +260,18 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
         // Find the ElevatedButton and check if it's disabled
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNull); // Disabled button has null onPressed
 
         // Clean up - Let the async operation complete
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should show success message after successful login', (tester) async {
+      testWidgets('should show success message after successful login', (
+        tester,
+      ) async {
         // Arrange
         // Mock successful login
         when(
@@ -253,7 +284,10 @@ void main() {
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Submit valid form and wait for completion
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.enterText(find.byType(TextFormField).last, 'password123');
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle(); // Wait for async operation to complete
@@ -267,7 +301,9 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsNothing);
 
         // Button should be enabled again
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNotNull);
       });
     });
@@ -308,7 +344,10 @@ void main() {
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Test text entry in both fields
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.enterText(find.byType(TextFormField).last, 'password123');
         await tester.pumpAndSettle();
 
@@ -317,13 +356,18 @@ void main() {
         expect(find.text('password123'), findsOneWidget);
       });
 
-      testWidgets('should support keyboard navigation between fields', (tester) async {
+      testWidgets('should support keyboard navigation between fields', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createLoginScreen());
 
         // Act - Focus on first field and enter text
         await tester.tap(find.byType(TextFormField).first);
-        await tester.enterText(find.byType(TextFormField).first, 'test@example.com');
+        await tester.enterText(
+          find.byType(TextFormField).first,
+          'test@example.com',
+        );
         await tester.pumpAndSettle();
 
         // Then focus on second field

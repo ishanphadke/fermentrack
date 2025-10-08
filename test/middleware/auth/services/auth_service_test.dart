@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import '../../../../lib/middleware/auth/services/auth_service.dart';
 
 import 'auth_service_test.mocks.dart';
 

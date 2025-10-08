@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fermentrack/core/features/auth/presentation/signup_screen.dart';
-import 'package:fermentrack/core/features/auth/presentation/password_reset_screen.dart';
-import 'package:fermentrack/core/utils/email_validator.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import 'signup_screen.dart';
+import 'password_reset_screen.dart';
+import '../../../utils/email_validator.dart';
+import '../../../../middleware/auth/providers/auth_providers.dart';
+import '../../../../middleware/auth/services/auth_service.dart';
 
 /// Login screen for user authentication
 ///

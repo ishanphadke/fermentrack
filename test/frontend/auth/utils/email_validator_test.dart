@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fermentrack/core/utils/email_validator.dart';
+import '../../../../lib/frontend/utils/email_validator.dart';
 
 /// Unit tests for EmailValidator utility class
 ///

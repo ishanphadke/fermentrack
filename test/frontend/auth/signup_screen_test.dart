@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:fermentrack/core/features/auth/presentation/signup_screen.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import '../../../lib/frontend/features/auth/presentation/signup_screen.dart';
+import '../../../lib/middleware/auth/providers/auth_providers.dart';
+import '../../../lib/middleware/auth/services/auth_service.dart';
 
 // Generate mocks for FirebaseAuth and User
 @GenerateMocks([auth.FirebaseAuth, auth.User, auth.UserCredential])
@@ -60,9 +60,7 @@ void main() {
             AuthService(firebaseAuth: mockFirebaseAuth),
           ),
         ],
-        child: const MaterialApp(
-          home: SignupScreen(),
-        ),
+        child: const MaterialApp(home: SignupScreen()),
       );
     }
 
@@ -122,8 +120,7 @@ void main() {
         expect(find.text('Please enter your email'), findsOneWidget);
       });
 
-      testWidgets('should show error for invalid email format',
-          (tester) async {
+      testWidgets('should show error for invalid email format', (tester) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -205,8 +202,9 @@ void main() {
         );
       });
 
-      testWidgets('should show error for password without uppercase',
-          (tester) async {
+      testWidgets('should show error for password without uppercase', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -229,8 +227,9 @@ void main() {
         );
       });
 
-      testWidgets('should show error for password without lowercase',
-          (tester) async {
+      testWidgets('should show error for password without lowercase', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -253,8 +252,9 @@ void main() {
         );
       });
 
-      testWidgets('should show error for password without digit',
-          (tester) async {
+      testWidgets('should show error for password without digit', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -277,8 +277,9 @@ void main() {
         );
       });
 
-      testWidgets('should show error for password without special character',
-          (tester) async {
+      testWidgets('should show error for password without special character', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -347,8 +348,9 @@ void main() {
     });
 
     group('Confirm Password Validation Tests', () {
-      testWidgets('should show error for empty confirm password',
-          (tester) async {
+      testWidgets('should show error for empty confirm password', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -368,8 +370,9 @@ void main() {
         expect(find.text('Please confirm your password'), findsOneWidget);
       });
 
-      testWidgets('should show error for non-matching passwords',
-          (tester) async {
+      testWidgets('should show error for non-matching passwords', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -420,8 +423,9 @@ void main() {
     });
 
     group('Password Strength Indicator Tests', () {
-      testWidgets('should not show indicator when password is empty',
-          (tester) async {
+      testWidgets('should not show indicator when password is empty', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -432,8 +436,9 @@ void main() {
         expect(find.text('Strong'), findsNothing);
       });
 
-      testWidgets('should show weak indicator for weak password',
-          (tester) async {
+      testWidgets('should show weak indicator for weak password', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -446,8 +451,9 @@ void main() {
         expect(find.text('Weak'), findsOneWidget);
       });
 
-      testWidgets('should show medium indicator for medium password',
-          (tester) async {
+      testWidgets('should show medium indicator for medium password', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -460,8 +466,9 @@ void main() {
         expect(find.text('Medium'), findsOneWidget);
       });
 
-      testWidgets('should show strong indicator for strong password',
-          (tester) async {
+      testWidgets('should show strong indicator for strong password', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -477,8 +484,9 @@ void main() {
         expect(find.text('Strong'), findsOneWidget);
       });
 
-      testWidgets('should update strength indicator in real-time',
-          (tester) async {
+      testWidgets('should update strength indicator in real-time', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
         final passwordField = find.byType(TextFormField).at(1);
@@ -509,8 +517,9 @@ void main() {
     });
 
     group('Form Submission Tests', () {
-      testWidgets('should prevent submission with invalid data',
-          (tester) async {
+      testWidgets('should prevent submission with invalid data', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 
@@ -549,12 +558,10 @@ void main() {
             email: anyNamed('email'),
             password: anyNamed('password'),
           ),
-        ).thenAnswer(
-          (_) async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            return mockUserCredential;
-          },
-        );
+        ).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return mockUserCredential;
+        });
 
         await tester.pumpWidget(createSignupScreen());
 
@@ -578,16 +585,18 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
         // Find the ElevatedButton and check if it's disabled
-        final button =
-            tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNull); // Disabled button has null onPressed
 
         // Clean up - Let the async operation complete
         await tester.pumpAndSettle();
       });
 
-      testWidgets('should show success message after successful signup',
-          (tester) async {
+      testWidgets('should show success message after successful signup', (
+        tester,
+      ) async {
         // Arrange
         // Mock successful signup
         when(
@@ -663,11 +672,15 @@ void main() {
 
         // Assert - Text should appear in the fields
         expect(find.text('test@example.com'), findsOneWidget);
-        expect(find.text('Password123!'), findsNWidgets(2)); // Both password fields
+        expect(
+          find.text('Password123!'),
+          findsNWidgets(2),
+        ); // Both password fields
       });
 
-      testWidgets('should support keyboard navigation between fields',
-          (tester) async {
+      testWidgets('should support keyboard navigation between fields', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createSignupScreen());
 

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 /// AuthService - Firebase Authentication Service
 ///
@@ -34,9 +35,11 @@ class AuthService {
   /// - Dependency injection makes code more modular
   /// - Makes unit testing possible without real Firebase calls
   /// - Follows SOLID principles (Dependency Inversion)
-  AuthService({FirebaseAuth? firebaseAuth})
-    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+  AuthService({FirebaseAuth? firebaseAuth, GoogleSignIn? googleSignIn})
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+      _googleSignIn = googleSignIn ?? GoogleSignIn();
   final FirebaseAuth _firebaseAuth;
+  final GoogleSignIn _googleSignIn;
 
   /// Current authenticated user
   /// This getter provides easy access to the current user
@@ -235,6 +238,7 @@ class AuthService {
       debugPrint('AuthService: Attempting to sign out current user');
 
       await _firebaseAuth.signOut();
+      await _googleSignIn.signOut();
 
       debugPrint('AuthService: Sign out successful');
     } catch (e) {
@@ -314,6 +318,135 @@ class AuthService {
       debugPrint('AuthService: Unexpected error during password reset: $e');
       throw const AuthException(
         'An unexpected error occurred. Please try again.',
+      );
+    }
+  }
+
+  /// Sign in with Google
+  ///
+  /// This method demonstrates:
+  /// - Third-party OAuth authentication flow
+  /// - Google Sign-In SDK integration
+  /// - Linking Google credentials with Firebase Auth
+  /// - Handling user cancellation
+  /// - Error handling for OAuth flow
+  ///
+  /// Flow:
+  /// 1. Trigger Google Sign-In picker
+  /// 2. User selects Google account
+  /// 3. Get authentication tokens from Google
+  /// 4. Create Firebase credential from Google tokens
+  /// 5. Sign in to Firebase with the credential
+  ///
+  /// Returns:
+  /// - [User] object on successful authentication
+  /// - null if user cancels the sign-in
+  ///
+  /// Throws:
+  /// - [AuthException] with user-friendly error messages
+  ///
+  /// Common scenarios:
+  /// - User cancels: Returns null (not an error)
+  /// - Network issues: Throws AuthException
+  /// - Account already exists: Links accounts or throws error
+  /// - Email already in use with password: Throws AuthException
+  Future<User?> signInWithGoogle() async {
+    try {
+      debugPrint('AuthService: Initiating Google Sign-In');
+
+      // Step 1: Trigger Google Sign-In flow
+      // This shows the Google account picker
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      // Step 2: Handle user cancellation
+      // If user dismisses the picker, googleUser will be null
+      if (googleUser == null) {
+        debugPrint('AuthService: Google Sign-In cancelled by user');
+        return null; // User cancelled, not an error
+      }
+
+      debugPrint('AuthService: Google account selected: ${googleUser.email}');
+
+      // Step 3: Obtain Google authentication tokens
+      // This gets the access token and ID token needed for Firebase
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Step 4: Create Firebase credential from Google tokens
+      // This credential will be used to authenticate with Firebase
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      debugPrint('AuthService: Signing in to Firebase with Google credential');
+
+      // Step 5: Sign in to Firebase with the Google credential
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
+
+      final User? user = userCredential.user;
+
+      if (user == null) {
+        debugPrint('AuthService: Google Sign-In failed - user is null');
+        throw const AuthException('Google Sign-In failed. Please try again.');
+      }
+
+      debugPrint(
+        'AuthService: Google Sign-In successful for user: ${user.uid}',
+      );
+      return user;
+    } on AuthException catch (e) {
+      debugPrint('AuthService: Validation error during Google Sign-In: $e');
+      rethrow;
+    } on FirebaseAuthException catch (e) {
+      debugPrint(
+        'AuthService: Firebase Auth Exception during Google Sign-In - '
+        'Code: ${e.code}, Message: ${e.message}',
+      );
+
+      // Handle specific Google Sign-In related errors
+      switch (e.code) {
+        case 'popup-closed-by-user':
+        case 'popup_closed':
+          // User closed the popup - this is not an error, just cancelled
+          debugPrint('AuthService: Google Sign-In popup closed by user');
+          return null;
+        case 'account-exists-with-different-credential':
+          throw const AuthException(
+            'An account already exists with the same email address but different sign-in credentials. '
+            'Please sign in using a provider associated with this email address.',
+          );
+        case 'invalid-credential':
+          throw const AuthException(
+            'The credential received from Google is invalid. Please try again.',
+          );
+        case 'operation-not-allowed':
+          throw const AuthException(
+            'Google Sign-In is not enabled. Please contact support.',
+          );
+        case 'user-disabled':
+          throw const AuthException(
+            'This account has been disabled. Please contact support.',
+          );
+        case 'user-not-found':
+          throw const AuthException('No account found. Please sign up first.');
+        case 'wrong-password':
+          throw const AuthException('Invalid credentials. Please try again.');
+        default:
+          throw AuthException(_handleFirebaseAuthError(e));
+      }
+    } catch (e) {
+      // Check if this is a popup_closed error from PlatformException
+      if (e.toString().contains('popup_closed')) {
+        debugPrint(
+          'AuthService: Detected popup_closed error - treating as cancellation',
+        );
+        return null;
+      }
+      debugPrint('AuthService: Unexpected error during Google Sign-In: $e');
+      throw const AuthException(
+        'An unexpected error occurred during Google Sign-In. Please try again.',
       );
     }
   }

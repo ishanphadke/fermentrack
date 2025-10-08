@@ -4,10 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import '../../../../lib/middleware/auth/providers/auth_providers.dart';
+import '../../../../lib/middleware/auth/services/auth_service.dart';
 
-import '../../services/auth_service_test.mocks.dart';
+import '../services/auth_service_test.mocks.dart';
 import 'auth_providers_test.mocks.dart';
 
 /// Comprehensive unit tests for Authentication Riverpod Providers

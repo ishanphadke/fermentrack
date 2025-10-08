@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:fermentrack/core/features/auth/presentation/password_reset_screen.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import '../../../lib/frontend/features/auth/presentation/password_reset_screen.dart';
+import '../../../lib/middleware/auth/providers/auth_providers.dart';
+import '../../../lib/middleware/auth/services/auth_service.dart';
 
 // Generate mocks for FirebaseAuth
 @GenerateMocks([auth.FirebaseAuth])
@@ -50,9 +50,7 @@ void main() {
             AuthService(firebaseAuth: mockFirebaseAuth),
           ),
         ],
-        child: const MaterialApp(
-          home: PasswordResetScreen(),
-        ),
+        child: const MaterialApp(home: PasswordResetScreen()),
       );
     }
 
@@ -117,8 +115,9 @@ void main() {
       testWidgets('should accept valid email format', (tester) async {
         // Arrange
         // Mock successful password reset
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenAnswer((_) async => Future.value());
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenAnswer((_) async => Future.value());
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -145,8 +144,9 @@ void main() {
     });
 
     group('Form Submission Tests', () {
-      testWidgets('should prevent submission with invalid email',
-          (tester) async {
+      testWidgets('should prevent submission with invalid email', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -164,17 +164,17 @@ void main() {
         );
       });
 
-      testWidgets('should show loading state during password reset',
-          (tester) async {
+      testWidgets('should show loading state during password reset', (
+        tester,
+      ) async {
         // Arrange
         // Mock password reset with a delay to test loading state
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenAnswer(
-          (_) async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            return Future.value();
-          },
-        );
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return Future.value();
+        });
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -187,20 +187,23 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
         // Find the ElevatedButton and check if it's disabled
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNull); // Disabled button has null onPressed
 
         // Clean up - Let the async operation complete
         await tester.pumpAndSettle();
       });
 
-      testWidgets(
-          'should show success message after sending reset email',
-          (tester) async {
+      testWidgets('should show success message after sending reset email', (
+        tester,
+      ) async {
         // Arrange
         // Mock successful password reset
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenAnswer((_) async => Future.value());
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenAnswer((_) async => Future.value());
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -216,23 +219,25 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsNothing);
 
         // Button should be enabled again
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNotNull);
 
         // Verify that sendPasswordResetEmail was called
         verify(
-          mockFirebaseAuth.sendPasswordResetEmail(
-            email: 'test@example.com',
-          ),
+          mockFirebaseAuth.sendPasswordResetEmail(email: 'test@example.com'),
         ).called(1);
       });
 
-      testWidgets('should clear email field after successful submission',
-          (tester) async {
+      testWidgets('should clear email field after successful submission', (
+        tester,
+      ) async {
         // Arrange
         // Mock successful password reset
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenAnswer((_) async => Future.value());
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenAnswer((_) async => Future.value());
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -250,10 +255,9 @@ void main() {
       testWidgets('should handle network errors gracefully', (tester) async {
         // Arrange
         // Mock network error
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenThrow(
-          auth.FirebaseAuthException(code: 'network-request-failed'),
-        );
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenThrow(auth.FirebaseAuthException(code: 'network-request-failed'));
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -266,18 +270,20 @@ void main() {
         expect(tester.takeException(), isNull);
 
         // Button should be enabled again (loading complete)
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNotNull);
       });
 
-      testWidgets('should handle invalid-email error from Firebase',
-          (tester) async {
+      testWidgets('should handle invalid-email error from Firebase', (
+        tester,
+      ) async {
         // Arrange
         // Mock invalid email error
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenThrow(
-          auth.FirebaseAuthException(code: 'invalid-email'),
-        );
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenThrow(auth.FirebaseAuthException(code: 'invalid-email'));
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -290,18 +296,20 @@ void main() {
         expect(tester.takeException(), isNull);
 
         // Button should be enabled again
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNotNull);
       });
 
-      testWidgets('should handle user-not-found without revealing it',
-          (tester) async {
+      testWidgets('should handle user-not-found without revealing it', (
+        tester,
+      ) async {
         // Arrange
         // Mock user not found (security: should still show success)
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenThrow(
-          auth.FirebaseAuthException(code: 'user-not-found'),
-        );
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenThrow(auth.FirebaseAuthException(code: 'user-not-found'));
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -317,14 +325,17 @@ void main() {
         expect(tester.takeException(), isNull);
 
         // Button should be enabled again
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNotNull);
       });
     });
 
     group('Navigation Tests', () {
-      testWidgets('should navigate back to login when back button pressed',
-          (tester) async {
+      testWidgets('should navigate back to login when back button pressed', (
+        tester,
+      ) async {
         // Arrange
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -377,18 +388,16 @@ void main() {
             matching: find.byType(TextField),
           ),
         );
-        expect(
-          textField.keyboardType,
-          TextInputType.emailAddress,
-        );
+        expect(textField.keyboardType, TextInputType.emailAddress);
       });
     });
 
     group('Button State Tests', () {
       testWidgets('button should be enabled with valid email', (tester) async {
         // Arrange
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenAnswer((_) async => Future.value());
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenAnswer((_) async => Future.value());
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -397,19 +406,20 @@ void main() {
         await tester.pump();
 
         // Assert - Button should be enabled
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNotNull);
       });
 
       testWidgets('button should disable during API call', (tester) async {
         // Arrange
-        when(mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')))
-            .thenAnswer(
-          (_) async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            return Future.value();
-          },
-        );
+        when(
+          mockFirebaseAuth.sendPasswordResetEmail(email: anyNamed('email')),
+        ).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return Future.value();
+        });
 
         await tester.pumpWidget(createPasswordResetScreen());
 
@@ -419,7 +429,9 @@ void main() {
         await tester.pump(); // Start the async operation
 
         // Assert - Button should be disabled during loading
-        final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+        final button = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
         expect(button.onPressed, isNull);
 
         // Clean up

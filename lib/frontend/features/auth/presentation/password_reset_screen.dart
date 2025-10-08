@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fermentrack/core/utils/email_validator.dart';
-import 'package:fermentrack/providers/auth/auth_providers.dart';
-import 'package:fermentrack/services/auth_service.dart';
+import '../../../utils/email_validator.dart';
+import '../../../../middleware/auth/providers/auth_providers.dart';
+import '../../../../middleware/auth/services/auth_service.dart';
 
 /// Password Reset screen for sending password reset emails
 ///
@@ -154,9 +154,7 @@ class _PasswordResetScreenState extends ConsumerState<PasswordResetScreen> {
 
         // Step 4: Perform Firebase password reset operation
         // Note: Firebase doesn't reveal if the email exists (security best practice)
-        await authService.sendPasswordResetEmail(
-          _emailController.text.trim(),
-        );
+        await authService.sendPasswordResetEmail(_emailController.text.trim());
 
         // Step 5: Handle success case
         // Check if widget is still mounted before accessing context

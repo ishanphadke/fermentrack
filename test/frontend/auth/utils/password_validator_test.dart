@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fermentrack/core/utils/password_validator.dart';
+import '../../../../lib/frontend/utils/password_validator.dart';
 
 /// Unit tests for PasswordValidator utility class
 ///
@@ -183,7 +183,8 @@ void main() {
 
       test('should return 3 for password with upper, lower, and digit', () {
         // Arrange
-        const password = 'Abc123'; // Upper + lower + digit (no length, no special)
+        const password =
+            'Abc123'; // Upper + lower + digit (no length, no special)
 
         // Act
         final strength = PasswordValidator.calculateStrength(password);
@@ -368,7 +369,10 @@ void main() {
         expect(PasswordValidator.calculateStrength('Aa1!'), equals(4));
 
         // Test long but simple password
-        expect(PasswordValidator.calculateStrength('passwordpassword'), equals(2));
+        expect(
+          PasswordValidator.calculateStrength('passwordpassword'),
+          equals(2),
+        );
       });
     });
   });

@@ -5,7 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
 
-import 'package:fermentrack/services/auth_service.dart' as _i3;
+import '../../../../lib/middleware/auth/services/auth_service.dart' as _i3;
 import 'package:firebase_auth/firebase_auth.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 
@@ -87,4 +87,12 @@ class MockAuthService extends _i1.Mock implements _i3.AuthService {
             returnValueForMissingStub: _i4.Future<void>.value(),
           )
           as _i4.Future<void>);
+
+  @override
+  _i4.Future<_i2.User?> signInWithGoogle() =>
+      (super.noSuchMethod(
+            Invocation.method(#signInWithGoogle, []),
+            returnValue: _i4.Future<_i2.User?>.value(),
+          )
+          as _i4.Future<_i2.User?>);
 }

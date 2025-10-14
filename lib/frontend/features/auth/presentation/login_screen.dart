@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'signup_screen.dart';
-import 'password_reset_screen.dart';
+import 'package:go_router/go_router.dart';
 import '../../../utils/email_validator.dart';
 import '../../../../middleware/auth/providers/auth_providers.dart';
 import '../../../../middleware/auth/services/auth_service.dart';
@@ -127,23 +126,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PasswordResetScreen(),
-                        ),
-                      );
+                      context.push('/reset-password');
                     },
                     child: const Text('Forgot Password?'),
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
-                      );
+                      context.push('/signup');
                     },
                     child: const Text('Don\'t have an account? Sign Up'),
                   ),
@@ -218,8 +207,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('Login successful!')));
-          // TODO: Navigate to dashboard (will be implemented in Sub-Issue 2.1.7)
-          // The authStateProvider will automatically update and trigger navigation
+          // Navigation happens automatically via GoRouter's redirect logic
+          // The authStateProvider update triggers the router refresh notifier
+          // which re-evaluates routes and redirects authenticated users to /dashboard
         }
       } on AuthException catch (e) {
         // Step 5b: Handle authentication-specific errors

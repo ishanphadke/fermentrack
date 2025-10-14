@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'frontend/features/auth/presentation/login_screen.dart';
+import 'middleware/auth/routing/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,19 +12,21 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the router provider to get the configured GoRouter instance
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
       title: 'Fermentrack',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      routerConfig: router,
     );
   }
 }

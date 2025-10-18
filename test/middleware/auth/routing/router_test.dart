@@ -4,25 +4,21 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:fermentrack/middleware/auth/providers/auth_providers.dart';
 import 'package:fermentrack/middleware/auth/routing/router.dart';
-import 'package:fermentrack/middleware/auth/services/auth_service.dart';
 import 'package:fermentrack/frontend/features/auth/presentation/login_screen.dart';
 import 'package:fermentrack/frontend/features/dashboard/presentation/dashboard_screen.dart';
 
-import 'router_test.mocks.dart' as mocks;
+import '../providers/auth_providers_test.mocks.dart';
 
-// Generate mocks for AuthService
-@GenerateMocks([AuthService])
 void main() {
   /// Shared mock instances across all tests
-  late mocks.MockAuthService mockAuthService;
+  late MockAuthService mockAuthService;
 
   setUp(() {
     // Create mock auth service for all tests
-    mockAuthService = mocks.MockAuthService();
+    mockAuthService = MockAuthService();
   });
 
   tearDown(() {

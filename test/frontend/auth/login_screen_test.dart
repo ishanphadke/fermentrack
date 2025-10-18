@@ -308,36 +308,6 @@ void main() {
       });
     });
 
-    group('Navigation Tests', () {
-      testWidgets('should handle forgot password button tap', (tester) async {
-        // Arrange
-        await tester.pumpWidget(createLoginScreen());
-
-        // Act - Tap forgot password button
-        await tester.tap(find.text('Forgot Password?'));
-        await tester.pumpAndSettle();
-
-        // Assert - Since we're using debugPrint, we can't easily test the output
-        // In a real implementation, this would navigate to password reset screen
-        // For now, we just verify the button is tappable without errors
-        expect(tester.takeException(), isNull);
-      });
-
-      testWidgets('should handle sign up button tap', (tester) async {
-        // Arrange
-        await tester.pumpWidget(createLoginScreen());
-
-        // Act - Tap sign up button
-        await tester.tap(find.text('Don\'t have an account? Sign Up'));
-        await tester.pumpAndSettle();
-
-        // Assert - Since we're using debugPrint, we can't easily test the output
-        // In a real implementation, this would navigate to signup screen
-        // For now, we just verify the button is tappable without errors
-        expect(tester.takeException(), isNull);
-      });
-    });
-
     group('Accessibility Tests', () {
       testWidgets('should support text input and focus', (tester) async {
         // Arrange

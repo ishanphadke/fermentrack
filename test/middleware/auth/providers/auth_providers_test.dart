@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../lib/middleware/auth/providers/auth_providers.dart';
-import '../../../../lib/middleware/auth/services/auth_service.dart';
+import 'package:fermentrack/middleware/auth/providers/auth_providers.dart';
+import 'package:fermentrack/middleware/auth/services/auth_service.dart';
 
 import '../services/auth_service_test.mocks.dart';
 import 'auth_providers_test.mocks.dart';

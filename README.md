@@ -60,11 +60,11 @@ Firebase/Google Cloud Platform
 ```
 fermentrack/
 ├── lib/
-│   ├── core/           # Core utilities and configurations
-│   ├── features/       # Feature-based modules
-│   ├── services/       # Business logic services
-│   ├── shared/         # Shared widgets and utilities
-│   ├── models/         # Data models
+│   ├── middleware/           # Connection to backend services like Firebase
+│        ├── auth/       # Business logic for authentication
+│        ├── models/         # Data models
+│   ├── frontend/       # UI
+|        ├── features/    # Widgets and screens
 │   └── main.dart       # App entry point
 ├── test/               # Test files
 └── pubspec.yaml        # Dependencies

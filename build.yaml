@@ -1,0 +1,59 @@
+# Build configuration for Fermentrack
+# This file optimizes code generation with build_runner
+# for Freezed, json_serializable, Riverpod, and Mockito
+
+targets:
+  $default:
+    builders:
+      # Freezed configuration
+      freezed:
+        enabled: true
+        options:
+          # Use Freezed for immutability, json_serializable for JSON
+          # This provides better performance than Freezed's built-in JSON
+          union_key: 'type'
+          union_value_case: 'none'
+        generate_for:
+          - lib/models/**/*.dart
+
+      # JSON Serialization configuration
+      json_serializable:
+        enabled: true
+        options:
+          # Generate explicit toJson methods
+          explicit_to_json: true
+          # Exclude null values from JSON
+          include_if_null: false
+          # Use const constructors when possible
+          checked: true
+          # Create factories for unions
+          create_factory: true
+          # Throw on missing keys
+          disallow_unrecognized_keys: false
+          # Field rename strategy
+          field_rename: none
+          # Generate $checkedConvert methods
+          checked_convert: false
+        generate_for:
+          - lib/models/**/*.dart
+
+      # Riverpod generator configuration
+      riverpod_generator:
+        enabled: true
+        generate_for:
+          - lib/middleware/**/providers/**/*.dart
+          - lib/middleware/auth/routing/*.dart
+
+      # Mockito configuration for test mocks
+      mockito:
+        enabled: true
+        generate_for:
+          - test/**/*_test.dart
+
+# Global options
+global_options:
+  # Don't generate files for excluded paths
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"

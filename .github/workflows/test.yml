@@ -1,0 +1,94 @@
+name: Flutter Tests
+
+on:
+  push:
+    branches: [ main, master, develop, 'claude/**' ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.9.2'
+          channel: 'stable'
+          cache: true
+
+      # Get dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Verify dependencies
+      - name: Check dependencies
+        run: flutter pub outdated
+
+      # Run code generation
+      - name: Generate code
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      # Verify no analyzer errors
+      - name: Analyze code
+        run: flutter analyze
+
+      # Run tests
+      - name: Run tests
+        run: flutter test --coverage
+
+      # Upload coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+          fail_ci_if_error: false
+
+      # Check for generated files
+      - name: Verify generated files
+        run: |
+          if [ ! -f "lib/models/project.freezed.dart" ]; then
+            echo "Error: project.freezed.dart not generated"
+            exit 1
+          fi
+          if [ ! -f "lib/models/project.g.dart" ]; then
+            echo "Error: project.g.dart not generated"
+            exit 1
+          fi
+          echo "All generated files present"
+
+      # Build app (optional, to ensure it compiles)
+      - name: Build app
+        run: flutter build apk --debug --split-per-abi
+        continue-on-error: true
+
+  format:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.9.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Check for formatting issues
+        if: failure()
+        run: |
+          echo "Code formatting issues detected. Run 'dart format .' to fix."
+          exit 1

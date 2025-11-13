@@ -6,6 +6,7 @@ import '../../../frontend/features/auth/presentation/login_screen.dart';
 import '../../../frontend/features/auth/presentation/signup_screen.dart';
 import '../../../frontend/features/auth/presentation/password_reset_screen.dart';
 import '../../../frontend/features/dashboard/presentation/dashboard_screen.dart';
+import '../../../frontend/features/projects/presentation/add_edit_project_screen.dart';
 
 // This part directive tells Riverpod's code generator where to place generated code
 part 'router.g.dart';
@@ -176,6 +177,19 @@ GoRouter router(Ref ref) {
         builder: (context, state) => const DashboardScreen(),
         // Note: No need for per-route guards
         // The global redirect logic handles auth protection
+      ),
+      GoRoute(
+        path: '/add-project',
+        name: 'addProject',
+        builder: (context, state) => const AddEditProjectScreen(),
+      ),
+      GoRoute(
+        path: '/edit-project/:id',
+        name: 'editProject',
+        builder: (context, state) {
+          final projectId = state.pathParameters['id'];
+          return AddEditProjectScreen(projectId: projectId);
+        },
       ),
     ],
 
